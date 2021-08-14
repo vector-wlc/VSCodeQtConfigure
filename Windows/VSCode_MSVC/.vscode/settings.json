@@ -1,0 +1,13 @@
+{
+    "[cpp]": {
+        "files.encoding": "gbk"
+    },
+    "[.h]": {
+        "files.encoding": "gbk"
+    },
+    "files.associations": {
+        "*.m": "matlab",
+        "xhash": "cpp",
+        "xtree": "cpp"
+    },
+}
