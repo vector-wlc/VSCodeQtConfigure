@@ -1,5 +1,5 @@
 {
-    "[cpp]": {
+    "[.cpp]": {
         "files.encoding": "gbk"
     },
     "[.h]": {
