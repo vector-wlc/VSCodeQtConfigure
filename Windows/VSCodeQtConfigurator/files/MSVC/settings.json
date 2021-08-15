@@ -1,0 +1,8 @@
+{
+    "[cpp]": {
+        "files.encoding": "gbk"
+    },
+    "[.h]": {
+        "files.encoding": "gbk"
+    }
+}

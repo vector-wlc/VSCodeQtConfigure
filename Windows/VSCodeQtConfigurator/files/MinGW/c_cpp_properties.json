@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "mingw32",
+            "includePath": [
+                "__QT_KIT_INCLUDE__",
+                "${workspaceRoot}/**"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
