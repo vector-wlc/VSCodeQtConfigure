@@ -1,20 +1,33 @@
 <!--
  * @Coding: utf-8
  * @Author: vector-wlc
- * @Date: 2021-08-15 11:04:12
+ * @Date: 2021-08-17 22:07:29
  * @Description: 
 -->
+# QtConfigurator README
 
-# VSCodeQtConfigure
+<strong>这不是 Qt 官方工具！！！x3</strong>
 
-VSCode Qt 配置生成工具
-构建 : Qt 5.15.0 + MinGW8.1.0_32
+在 VSCode 中生成 Qt 项目配置文件，可独立运行调试 Qt 项目
 
-下载 : [https://pan.baidu.com/s/1PnLqE6_yoHlch1KYWZ86WQ ](https://pan.baidu.com/s/1PnLqE6_yoHlch1KYWZ86WQ ) 提取码 : 提取码：thqg
+## Features
 
-更新日志
+* Command: "QtConfigure : New Project" 生成 Qt 项目配置文件
 
-version = 0.3 
-date = 2021 08 15
+* Command: "QtConfigure : Set Qt Dir" 选择 Qt 安装目录，注意是安装目录，而不是 Qt 套件目录，
+该扩展会根据 Qt 安装路径搜索相应的 Qt 套件以及编译器
 
-* 更正 settings.json 的书写问题 \[cpp\] -> \[.cpp\]
+* Build Debug:
+在编译运行 Debug 时，请将`./.vscode/launch.json` 中的有关内容修改如下:`"program": "${workspaceRoot}/build/debug/${workspaceRootFolderName}.exe"    "preLaunchTask": "debug"`
+
+* Build Release:
+在编译运行 Release 时，请将`./.vscode/launch.json` 中的有关内容修改如下 :`"program": "${workspaceRoot}/build/release/${workspaceRootFolderName}.exe"    "preLaunchTask": "release"`
+
+## Requirements
+
+* 需要安装 Qt
+
+## Extension Settings
+
+* `qtConfigure.qtDir` :  设置 Qt 安装路径
+* `qtConfigure.vcvarsallPath` : 设置 Visual Studio vcvarsall.bat (环境变量配置工具) 路径
