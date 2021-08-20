@@ -97,16 +97,6 @@ export const MSVC_LAUNCH_JSON = "{\n\
     ]\n\
 }"
 
-
-export const MSVC_SETTINGS_JSON = "{\n\
-    \"[cpp]\": {\n\
-        \"files.encoding\": \"gbk\"\n\
-    },\n\
-    \"[.h]\": {\n\
-        \"files.encoding\": \"gbk\"\n\
-    }\n\
-}"
-
 // ======================================
 
 
@@ -159,6 +149,7 @@ cd __BUILD_MODE__\n\
 if not exist %BUILD_DIR%\\__BUILD_MODE__\\Qt5Core.dll (\n\
     windeployqt __PROJECT_NAME__.exe\n\
 )"
+// ======================================
 
 
 // *************************
@@ -190,26 +181,52 @@ __PROJECT_NAME__::~__PROJECT_NAME__()\n\
 {\n\
 }"
 
+export const PROEJCT_CPP_WITH_UI = "#include \"__PROJECT_NAME__.h\"\n\
+\n\
+__PROJECT_NAME__::__PROJECT_NAME__(QWidget* parent)\n\
+    : QMainWindow(parent)\n\
+    , ui(new Ui___PROJECT_NAME__)\n\
+{\n\
+    ui->setupUi(this);\n\
+}\n\
+\n\
+__PROJECT_NAME__::~__PROJECT_NAME__()\n\
+{\n\
+    delete ui; \n\
+}"
 
 export const PROEJCT_H = "#pragma once\n\
 #include <QMainWindow>\n\
-// #pragma execution_character_set(\"utf-8\") \n\
 \n\
 class __PROJECT_NAME__ : public QMainWindow {\n\
     Q_OBJECT\n\
 \n\
 public:\n\
-__PROJECT_NAME__(QWidget* parent = nullptr);\n\
+    __PROJECT_NAME__(QWidget* parent = nullptr);\n\
     ~__PROJECT_NAME__();\n\
+};"
+
+export const PROEJCT_H_WITH_UI = "#pragma once\n\
+#include \"ui___PROJECT_NAME__.h\"\n\
+#include <QMainWindow>\n\
+\n\
+class __PROJECT_NAME__ : public QMainWindow {\n\
+    Q_OBJECT\n\
+    \n\
+public:\n\
+    __PROJECT_NAME__(QWidget* parent = nullptr);\n\
+    ~__PROJECT_NAME__();\n\
+\n\
+private:\n\
+    Ui___PROJECT_NAME__* ui;\n\
 };"
 
 export const QT_PRO = "QT += core gui widgets\n\
 \n\
 CONFIG += c++17\n\
 \n\
-# You can make your code fail to compile if it uses deprecated APIs.\n\
-# In order to do so, uncomment the following line.\n\
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0\n\
+win32-msvc*:QMAKE_CXXFLAGS += /utf-8\n\
+# QMAKE_LFLAGS += \"/MANIFESTUAC:\\\"level='requireAdministrator' uiAccess='false'\\\"\"\n\
 \n\
 SOURCES += \\\n\
     $$files($$PWD/src/*.cpp)\n\
@@ -217,7 +234,33 @@ SOURCES += \\\n\
 HEADERS += \\\n\
     $$files($$PWD/src/*.h)\n\
 \n\
+# FORMS += __PROJECT_NAME__.ui\n\
+\n\
 # Default rules for deployment.\n\
 qnx: target.path = /tmp/$${TARGET}/bin\n\
 else: unix:!android: target.path = /opt/$${TARGET}/bin\n\
 !isEmpty(target.path): INSTALLS += target"
+
+
+export const QT_UI = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<ui version=\"4.0\">\n\
+ <class>__PROJECT_NAME__</class>\n\
+ <widget class=\"QMainWindow\" name=\"__PROJECT_NAME__\">\n\
+  <property name=\"geometry\">\n\
+   <rect>\n\
+    <x>0</x>\n\
+    <y>0</y>\n\
+    <width>800</width>\n\
+    <height>600</height>\n\
+   </rect>\n\
+  </property>\n\
+  <property name=\"windowTitle\">\n\
+   <string>__PROJECT_NAME__</string>\n\
+  </property>\n\
+  <widget class=\"QWidget\" name=\"centralwidget\"/>\n\
+  <widget class=\"QMenuBar\" name=\"menubar\"/>\n\
+  <widget class=\"QStatusBar\" name=\"statusbar\"/>\n\
+ </widget>\n\
+ <resources/>\n\
+ <connections/>\n\
+</ui>"

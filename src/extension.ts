@@ -18,13 +18,13 @@ let qtConfigurator = new QtConfigurator();
 function isCanCreateProject(): boolean {
 	let workspaceFolders = vscode.workspace.workspaceFolders;
 	if (workspaceFolders === undefined) {
-		vscode.window.showErrorMessage("请使用 VSCode 打开一个空文件夹以创建项目");
+		vscode.window.showErrorMessage("请使用 VSCode 打开一个空文件夹以创建项目 (Please use vscode to open an empty folder to create the project)");
 		return false;
 	}
 	for (let entry of workspaceFolders) {
 		let dirs = fs.readdirSync(entry.uri.fsPath)
 		if (dirs.length !== 0) {
-			vscode.window.showWarningMessage("推荐使用一个空路径以配置项目");
+			vscode.window.showWarningMessage("推荐使用一个空路径以配置项目 (It is recommended to use an empty path to configure the project)");
 			return true;
 		}
 	}
@@ -37,18 +37,19 @@ function getQtDir() {
 		canSelectFolders: true,
 		canSelectFiles: false,
 		canSelectMany: false,
-		openLabel: '打开 Qt 安装目录，注意不是套件目录，而是安装目录'
+		openLabel: '打开 Qt 安装目录 (Open the Qt installation directory)'
 	};
 
 	vscode.window.showOpenDialog(options).then(dir => {
 		if (dir && dir[0]) {
 			qtConfigurator.setQtDir(dir[0].fsPath);
 			if (!qtConfigurator.isGetQtDir()) {
-				vscode.window.showErrorMessage("您设置的 Qt 安装路径不正确，请重新执行 QtConfigure : Set Qt Dir 命令设置 Qt 安装路径");
+				vscode.window.showErrorMessage("您设置的 Qt 安装路径不正确，请重新执行 QtConfigure : Set Qt Dir 命令设置 Qt 安装路径\
+				(The Qt installation path you set is incorrect. Please re execute QtConfigure : Set Qt Dir command to set the Qt installation path)");
 			} else {
 				let qtKitDirList = qtConfigurator.getQtKitDirList();
 				if (qtKitDirList.length !== 0) {
-					let str = "找到以下 Qt 套件 : \n ";
+					let str = "找到以下 Qt 套件 (Find the following Qt kits): \n ";
 					for (let qtKitDir of qtKitDirList) {
 						str += qtKitDir + "\n";
 					}
@@ -60,15 +61,27 @@ function getQtDir() {
 	});
 }
 
+function selectQtUi() {
+	const options: vscode.QuickPickOptions = {
+		title: "请选择是否带有 UI 文件 (Please select whether there is UI file)"
+	};
+	vscode.window.showQuickPick(["yes", "no"], options).then(result => {
+		if (result && result.length != 0) {
+			qtConfigurator.setQtUi(result === "yes");
+			qtConfigurator.createQtConfigureFiles();
+		}
+	});
+}
+
 function selectQtKit() {
 
 	const options: vscode.QuickPickOptions = {
-		title: "请选择 Qt 套件"
+		title: "请选择 Qt 套件 (Please select Qt Kit)"
 	};
 	vscode.window.showQuickPick(qtConfigurator.getQtKitDirList(), options).then(qt_kit_name => {
 		if (qt_kit_name && qt_kit_name.length != 0) {
 			qtConfigurator.setQtKitDir(qt_kit_name.toString());
-			qtConfigurator.createQtConfigureFiles();
+			selectQtUi();
 		}
 	});
 }
@@ -76,7 +89,7 @@ function selectQtKit() {
 function getQtProjectName() {
 	let inputBox = vscode.window.createInputBox();
 	inputBox.show();
-	inputBox.title = "请输入项目名称";
+	inputBox.title = "请输入项目名称 (Please enter project name)";
 	let value: string;
 	inputBox.onDidAccept((e) => {
 		value = inputBox.value;
@@ -88,19 +101,20 @@ function getQtProjectName() {
 
 
 export function activate(context: vscode.ExtensionContext) {
-
 	let newQtProject = vscode.commands.registerCommand('qtConfigure.newQtProject', () => {
 		if (!isCanCreateProject()) {
 			return;
 		}
-
-		const result = vscode.workspace.getConfiguration().get('qtConfigure.qtDir');
-		if (result) {
-			qtConfigurator.setQtDir(<string>result);
-		}
 		if (!qtConfigurator.isGetQtDir()) {
-			vscode.window.showErrorMessage("您尚未选择设置 Qt 安装路径，请运行 QtConfigure : Set Qt Dir 命令设置 Qt 安装路径");
-			return;
+			const result = vscode.workspace.getConfiguration().get('qtConfigure.qtDir');
+			if (result) {
+				qtConfigurator.setQtDir(<string>result);
+			}
+			if (!qtConfigurator.isGetQtDir()) {
+				vscode.window.showErrorMessage("您尚未选择设置 Qt 安装路径，请运行 QtConfigure : Set Qt Dir 命令设置 Qt 安装路径\
+				 (You have not selected to set Qt installation path. Please run 'QtConfigure : Set Qt Dir command' to set QT installation path)");
+				return;
+			}
 		}
 		getQtProjectName();
 
@@ -110,8 +124,20 @@ export function activate(context: vscode.ExtensionContext) {
 		getQtDir();
 	});
 
+	let openQtDesigner = vscode.commands.registerCommand('qtConfigure.openQtDesigner', () => {
+		qtConfigurator.openDesigner();
+	});
+
+	let closeTerminal = vscode.window.onDidCloseTerminal(t => {
+		if (t.name == "qtTerminal") {
+			qtConfigurator.closeTerminal();
+		}
+	});
+
 	context.subscriptions.push(newQtProject);
 	context.subscriptions.push(setQtDir);
+	context.subscriptions.push(closeTerminal);
+	context.subscriptions.push(openQtDesigner);
 }
 
 

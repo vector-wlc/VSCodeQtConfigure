@@ -2,7 +2,7 @@
     "name": "qtconfigure",
     "displayName": "Qt Configure",
     "description": "Generating configuration files for Qt project in VSCode",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "engines": {
         "vscode": "^1.27.0"
     },
@@ -11,7 +11,8 @@
     ],
     "activationEvents": [
         "onCommand:qtConfigure.newQtProject",
-        "onCommand:qtConfigure.setQtDir"
+        "onCommand:qtConfigure.setQtDir",
+        "onCommand:qtConfigure.openQtDesigner"
     ],
     "publisher": "vector-wlc",
     "keywords": ["qt", "qtconfigure"],
@@ -28,6 +29,9 @@
         }, {
             "command": "qtConfigure.setQtDir",
             "title": "QtConfigure : Set Qt Dir"
+        }, {
+            "command": "qtConfigure.openQtDesigner",
+            "title": "QtConfigure : Open Qt Designer"
         }],
 
         "configuration": {
@@ -37,12 +41,22 @@
                 "qtConfigure.qtDir": {
                     "type": "string",
                     "default": "",
-                    "description": "Qt 安装路径"
+                    "description": "Qt 安装路径 (Qt installation path)"
                 },
                 "qtConfigure.vcvarsallPath": {
                     "type": "string",
                     "default": "C:\\Program Files (x86)\\Microsoft Visual Studio\\__VS_VERSION__\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat",
-                    "description": "Visual Studio vcvarsall.bat (配置环境变量、工作目录波批处理文件) 路径"
+                    "description": "Visual Studio vcvarsall.bat (配置环境变量、工作目录批处理文件) 路径。 (Visual studio vcvarsall.bat (configuration environment variables, working directory, batch file) path)"
+                },
+                "qtConfigure.mingwPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "MinGW 安装路径，需要到 bin 之前的那个目录，此值未设置时会在配置 Qt 安装路径后自动设置为 Qt 自带的 MinGW 路径 (The MinGW installation path needs to go to the directory before bin. If this value is not set, it will be automatically set to the MinGW path of Qt after configuring the Qt installation path)"
+                },
+                "qtConfigure.qtKitDir": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Qt 套件路径 (Qt Kit path)"
                 }
             }
         }

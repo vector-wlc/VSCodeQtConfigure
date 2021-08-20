@@ -18,8 +18,10 @@ export class QtConfigurator {
     private qtKitDirList: string[];
     private qtSelectedKitDir: string;
     private qtSelectedKitName: string;
-    private debuggerName: string;
+    private mingwPath: string;
     private vcvarsallPath: string;
+    private isHasQtUi: boolean;
+    private qtTerminal: vscode.Terminal | undefined;
 
     constructor() {
         this.qtDir = "";
@@ -29,8 +31,9 @@ export class QtConfigurator {
         this.qtKitDirList = [];
         this.qtSelectedKitDir = "";
         this.qtSelectedKitName = "";
-        this.debuggerName = "";
+        this.mingwPath = "";
         this.vcvarsallPath = "C:\\Program Files (x86)\\Microsoft Visual Studio\\__VS_VERSION__\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat";
+        this.isHasQtUi = false;
     }
 
     public setProjectName(projectName: string): void {
@@ -73,6 +76,13 @@ export class QtConfigurator {
         this.qtSelectedKitName = qtKitDir.split("\\").pop()?.toString()!;
     }
 
+    public setQtUi(isHasQtUi: boolean) {
+        this.isHasQtUi = isHasQtUi;
+        if (isHasQtUi) {
+            vscode.workspace.getConfiguration().update('qtConfigure.qtKitDir', this.qtSelectedKitDir, false);
+        }
+    }
+
     public isGetQtDir(): boolean {
         return this.qtDir !== "";
     }
@@ -86,13 +96,12 @@ export class QtConfigurator {
     }
 
     private writeFile(fileName: string, content: string): void {
-
         if (fs.existsSync(fileName)) {
             fs.unlinkSync(fileName);
         }
         fs.writeFile(fileName, content, "utf-8", (err) => {
             if (err) {
-                vscode.window.showErrorMessage("配置文件 " + fileName + " 失败");
+                vscode.window.showErrorMessage("Write File : " + fileName + " Failed");
             }
         });
     }
@@ -111,8 +120,47 @@ export class QtConfigurator {
 
     }
 
+    public openDesigner() {
+        let _qtSelectedKitDir = vscode.workspace.getConfiguration().get('qtConfigure.qtKitDir');
+        if (!_qtSelectedKitDir) {
+            vscode.window.showErrorMessage("请创建 Qt Ui 项目后再使用此命令 (Please create Qt Ui project before using this command)");
+            return;
+        }
+        if (this.qtTerminal === undefined) {
+            this.qtTerminal = vscode.window.createTerminal("qtTerminal", "cmd");
+        }
+
+        if (this.projectName.length === 0) { // 寻找 .ui 文件
+            this.projectDir = vscode.workspace.workspaceFolders![0].uri.fsPath;
+            let projectFileList = fs.readdirSync(this.projectDir);
+            for (let projectFile of projectFileList) {
+                if (projectFile.search("\\.ui") !== -1) {
+                    this.projectName = projectFile.replace(".ui", "");
+                    break;
+                }
+            }
+        }
+
+        this.qtTerminal.sendText(_qtSelectedKitDir + "\\bin\\designer.exe" + " " + this.projectDir + "\\" + this.projectName + ".ui");
+    }
+
+    public closeTerminal() {
+        this.qtTerminal = undefined;
+    }
+
     private strReplaceAll(str: string, subStr: string, newSubStr: string): string {
         return str.split(subStr).join(newSubStr);
+    }
+
+    private getMinGWPath() {
+        let _mingwPath = vscode.workspace.getConfiguration().get('qtConfigure.mingwPath');
+        if (_mingwPath) {
+            this.mingwPath = <string>_mingwPath;
+        } else {
+            let mingwName = this.strReplaceAll(this.qtSelectedKitName, "_", "0_");
+            this.mingwPath = this.qtDir + "\\Tools\\" + mingwName;
+            vscode.workspace.getConfiguration().update('qtConfigure.mingwPath', this.mingwPath, true);
+        }
     }
 
     private createVSCodeJsonFiles() {
@@ -128,8 +176,8 @@ export class QtConfigurator {
             this.writeFile(this.projectDir + "\\.vscode\\launch.json", template_files.MSVC_LAUNCH_JSON);
         } else {
             content = template_files.MINGW_LAUNCH_JSON;
-            this.debuggerName = this.strReplaceAll(this.qtSelectedKitName, "_", "0_");
-            let debugger_path = this.qtDir + "\\Tools\\" + this.debuggerName + "\\bin\\gdb.exe";
+            this.getMinGWPath();
+            let debugger_path = this.mingwPath + "\\bin\\gdb.exe";
             content = this.strReplaceAll(content, "__DEBUGGER_PATH__", debugger_path);
             content = this.strReplaceAll(content, "\\", "/");
             this.writeFile(this.projectDir + "\\.vscode\\launch.json", content);
@@ -137,11 +185,6 @@ export class QtConfigurator {
 
         // tasks
         this.writeFile(this.projectDir + "\\.vscode\\tasks.json", template_files.TASK_JSON);
-
-        // settings
-        if (this.isMsvc) {
-            this.writeFile(this.projectDir + "\\.vscode\\settings.json", template_files.MSVC_SETTINGS_JSON);
-        }
 
     }
 
@@ -165,10 +208,9 @@ export class QtConfigurator {
             content = this.strReplaceAll(content, "__VCVARSALL_PATH__", this.vcvarsallPath);
             content = this.strReplaceAll(content, "__EXEC_BITS__", is_x64 ? "x64" : "x86");
         } else { // MinGW
-            let MingwPath = this.qtDir + "\\Tools\\" + this.debuggerName;
             let jomPath = this.qtDir + "\\Tools\\QtCreator\\bin\\jom.exe";
 
-            content = this.strReplaceAll(content, "__MINGW_PATH__", MingwPath);
+            content = this.strReplaceAll(content, "__MINGW_PATH__", this.mingwPath);
             content = this.strReplaceAll(content, "__JOM_PATH__", jomPath);
         }
 
@@ -196,14 +238,25 @@ export class QtConfigurator {
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
         this.writeFile(this.projectDir + "\\src\\main.cpp", content);
 
-        content = template_files.PROEJCT_CPP;
+        content = this.isHasQtUi ? template_files.PROEJCT_CPP_WITH_UI : template_files.PROEJCT_CPP;
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
         this.writeFile(this.projectDir + "\\src\\" + this.projectName + ".cpp", content);
 
-        content = template_files.PROEJCT_H;
+        content = this.isHasQtUi ? template_files.PROEJCT_H_WITH_UI : template_files.PROEJCT_H;
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
         this.writeFile(this.projectDir + "\\src\\" + this.projectName + ".h", content);
 
-        this.writeFile(this.projectDir + "\\" + this.projectName + ".pro", template_files.QT_PRO);
+        content = template_files.QT_PRO;
+        content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
+        if (this.isHasQtUi) {
+            content = this.strReplaceAll(content, "# FORMS", "FORMS");
+        }
+        this.writeFile(this.projectDir + "\\" + this.projectName + ".pro", content);
+
+        if (this.isHasQtUi) {
+            content = template_files.QT_UI;
+            content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
+            this.writeFile(this.projectDir + "\\" + this.projectName + ".ui", content);
+        }
     }
 }
