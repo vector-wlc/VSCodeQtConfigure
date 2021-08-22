@@ -6,6 +6,8 @@
 -->
 # QtConfigurator README
 
+## Only Windows and Linux are supported
+
 <strong>这不是 Qt 官方工具！！！x3</strong>
 
 在 VSCode 中生成 Qt 项目配置文件，按下 F5 可独立运行调试 Qt 项目

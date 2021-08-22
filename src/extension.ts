@@ -9,13 +9,19 @@
 import * as vscode from 'vscode';
 import { QtConfigurator } from './qt_configurator';
 import * as fs from "fs";
+import * as os from "os";
+
 
 let qtConfigurator = new QtConfigurator();
 
-
-
-// 检查当前路径下是否为空路径
+// 1. 检查当前操作系统是否是 win32 或者 linux
+// 2. 检查当前路径下是否为空路径
 function isCanCreateProject(): boolean {
+	let platform = os.platform().toString();
+	if (platform !== "win32" && platform !== "linux") {
+		vscode.window.showWarningMessage("目前尚不支持的操作系统");
+		return true;
+	}
 	let workspaceFolders = vscode.workspace.workspaceFolders;
 	if (workspaceFolders === undefined) {
 		vscode.window.showErrorMessage("请使用 VSCode 打开一个空文件夹以创建项目 (Please use vscode to open an empty folder to create the project)");
@@ -74,7 +80,6 @@ function selectQtUi() {
 }
 
 function selectQtKit() {
-
 	const options: vscode.QuickPickOptions = {
 		title: "请选择 Qt 套件 (Please select Qt Kit)"
 	};
@@ -98,7 +103,6 @@ function getQtProjectName() {
 		selectQtKit();
 	});
 }
-
 
 export function activate(context: vscode.ExtensionContext) {
 	let newQtProject = vscode.commands.registerCommand('qtConfigure.newQtProject', () => {

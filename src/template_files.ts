@@ -2,14 +2,14 @@
 // .vscode/.json
 // *************************
 // ======================================
-export const MINGW_LAUNCH_JSON = "{\n\
+export const MINGW_OR_GCC_LAUNCH_JSON = "{\n\
     \"version\": \"0.2.0\",\n\
     \"configurations\": [\n\
         {\n\
             \"name\": \"debug\",\n\
             \"type\": \"cppdbg\",\n\
             \"request\": \"launch\",\n\
-            \"program\": \"${workspaceRoot}/build/debug/${workspaceRootFolderName}.exe\",\n\
+            \"program\": \"${workspaceRoot}/build/debug/__PROJECT_NAME__\",\n\
             \"args\": [],\n\
             \"stopAtEntry\": false,\n\
             \"cwd\": \"${workspaceRoot}\",\n\
@@ -29,7 +29,25 @@ export const MINGW_LAUNCH_JSON = "{\n\
     ]\n\
 }"
 
-export const TASK_JSON = "{\n\
+export const MSVC_LAUNCH_JSON = "{\n\
+    \"version\": \"0.2.0\",\n\
+    \"configurations\": [\n\
+        {\n\
+            \"name\": \"Launch\",\n\
+            \"type\": \"cppvsdbg\",\n\
+            \"request\": \"launch\",\n\
+            \"program\": \"${workspaceRoot}/build/debug/__PROJECT_NAME__\",\n\
+            \"args\": [],\n\
+            \"stopAtEntry\": false,\n\
+            \"cwd\": \"${workspaceRoot}\",\n\
+            \"environment\": [],\n\
+            \"console\": \"integratedTerminal\",\n\
+            \"preLaunchTask\": \"debug\"\n\
+        }\n\
+    ]\n\
+}"
+
+export const WINDOWS_TASK_JSON = "{\n\
     \"version\": \"2.0.0\",\n\
     \"tasks\": [\n\
         {\n\
@@ -64,10 +82,97 @@ export const TASK_JSON = "{\n\
 }"
 
 
+export const LINUX_TASK_JSON = "{\n\
+    \"version\": \"2.0.0\",\n\
+    \"tasks\": [\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"mkdir build\",\n\
+            \"command\": \"if [ ! -e ./build ]; then\\nmkdir build\\nfi\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\"\n\
+        },\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"mkdir build debug\",\n\
+            \"command\": \"if [ ! -e ./build/debug ]; then\\nmkdir ./build/debug\\nfi\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\",\n\
+            \"dependsOn\": [\n\
+                \"mkdir build\"\n\
+            ]\n\
+        },\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"mkdir build release\",\n\
+            \"command\": \"if [ ! -e ./build/release ]; then\\nmkdir ./build/release\\nfi\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\",\n\
+            \"dependsOn\": [\n\
+                \"mkdir build\"\n\
+            ]\n\
+        },\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"qmake build debug\",\n\
+            \"command\": \"cd build/debug && __QMAKE_PATH__ ${workspaceFolder}/Test.pro \\\"CONFIG += debug\\\"\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\",\n\
+            \"dependsOn\": [\n\
+                \"mkdir build debug\"\n\
+            ]\n\
+        },\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"debug\",\n\
+            \"command\": \"cd build/debug && __GCC_MAKE_PATH_\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\",\n\
+            \"dependsOn\": [\n\
+                \"qmake build debug\"\n\
+            ]\n\
+        },\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"qmake build release\",\n\
+            \"command\": \"cd build/release && __QMAKE_PATH__ ${workspaceFolder}/Test.pro  \\\"CONFIG += release\\\"\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\",\n\
+            \"dependsOn\": [\n\
+                \"mkdir build release\"\n\
+            ]\n\
+        },\n\
+        {\n\
+            \"type\": \"shell\",\n\
+            \"label\": \"release\",\n\
+            \"command\": \"cd build/release && __GCC_MAKE_PATH_\",\n\
+            \"args\": [],\n\
+            \"options\": {},\n\
+            \"problemMatcher\": [],\n\
+            \"group\": \"build\",\n\
+            \"dependsOn\": [\n\
+                \"qmake build release\"\n\
+            ]\n\
+        }\n\
+    ]\n\
+}"
+
 export const C_CPP_JSON = "{\n\
     \"configurations\": [\n\
         {\n\
-            \"name\": \"windows\",\n\
+            \"name\": \"qt\",\n\
             \"includePath\": [\n\
                 \"__QT_KIT_INCLUDE__\",\n\
                 \"${workspaceRoot}/**\"\n\
@@ -79,23 +184,6 @@ export const C_CPP_JSON = "{\n\
     \"version\": 4\n\
 }"
 
-export const MSVC_LAUNCH_JSON = "{\n\
-    \"version\": \"0.2.0\",\n\
-    \"configurations\": [\n\
-        {\n\
-            \"name\": \"Launch\",\n\
-            \"type\": \"cppvsdbg\",\n\
-            \"request\": \"launch\",\n\
-            \"program\": \"${workspaceRoot}/build/debug/${workspaceRootFolderName}.exe\",\n\
-            \"args\": [],\n\
-            \"stopAtEntry\": false,\n\
-            \"cwd\": \"${workspaceRoot}\",\n\
-            \"environment\": [],\n\
-            \"console\": \"integratedTerminal\",\n\
-            \"preLaunchTask\": \"debug\"\n\
-        }\n\
-    ]\n\
-}"
 
 // ======================================
 
@@ -116,7 +204,7 @@ if not exist %QT_DIR% exit\n\
 if not exist %SRC_DIR% exit\n\
 if not exist %BUILD_DIR% md %BUILD_DIR%\n\
 \n\
-cd /d %BUILD_DIR%\n\
+cd build\n\
 \n\
 call \"__VCVARSALL_PATH__\" __EXEC_BITS__\n\
 \n\

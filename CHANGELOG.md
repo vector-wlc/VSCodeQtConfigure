@@ -6,6 +6,11 @@
 -->
 # Change Log
 
+## [0.1.1] 2021/08/22
+
+* 增加了对 Linux 的支持
+* 修改了 Windows bat 文件：cd %BUILD_DIR% -> cd build
+
 ## [0.1.0] 2021/08/19
 
 * 增加了 MSVC utf-8 编码选项

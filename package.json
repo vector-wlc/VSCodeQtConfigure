@@ -2,7 +2,7 @@
     "name": "qtconfigure",
     "displayName": "Qt Configure",
     "description": "Generating configuration files for Qt project in VSCode",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "engines": {
         "vscode": "^1.27.0"
     },
