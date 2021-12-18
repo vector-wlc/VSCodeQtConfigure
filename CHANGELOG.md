@@ -6,6 +6,11 @@
 -->
 # Change Log
 
+## [0.2.0] 2021/12/18
+
+* 增加了对 CMake 的支持
+* 增加了命令 `QtConfigure : Open Qt Assistant`，用于打开 Qt 助手
+
 ## [0.1.1] 2021/08/22
 
 * 增加了对 Linux 的支持

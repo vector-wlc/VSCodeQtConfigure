@@ -28,6 +28,8 @@ export class QtConfigurator {
     private isWin32: boolean;
     private isLinux: boolean;
     private execSuffix: string;
+    private cmdSuffix: string;
+    private buildTools: string;
 
     constructor() {
         this.qtDir = "";
@@ -49,6 +51,11 @@ export class QtConfigurator {
         if (this.isWin32) {
             this.execSuffix = ".exe";
         }
+        this.cmdSuffix = "";
+        if (this.isLinux) {
+            this.cmdSuffix = " &";
+        }
+        this.buildTools = "";
     }
 
     public setProjectName(projectName: string): void {
@@ -88,18 +95,21 @@ export class QtConfigurator {
 
     public setQtKitDir(qtKitDir: string) {
         this.qtSelectedKitDir = qtKitDir;
+        this.qtSelectedKitDir = this.strReplaceAll(this.qtSelectedKitDir, "\\", "/");
+        vscode.workspace.getConfiguration().update('qtConfigure.qtKitDir', this.qtSelectedKitDir, false);
         this.qtSelectedKitName = qtKitDir.split("/").pop()?.toString()!;
     }
 
     public setQtUi(isHasQtUi: boolean) {
         this.isHasQtUi = isHasQtUi;
-        if (isHasQtUi) {
-            vscode.workspace.getConfiguration().update('qtConfigure.qtKitDir', this.qtSelectedKitDir, false);
-        }
     }
 
     public isGetQtDir(): boolean {
         return this.qtDir !== "";
+    }
+
+    public setBuildTools(buildTools: string) {
+        this.buildTools = buildTools;
     }
 
     private mkDir(dirName: string): boolean {
@@ -123,33 +133,48 @@ export class QtConfigurator {
 
     public createQtConfigureFiles() {
         this.projectDir = vscode.workspace.workspaceFolders![0].uri.fsPath;
-
         this.mkDir(this.projectDir + "/.vscode");
         this.mkDir(this.projectDir + "/src");
+        this.createSrc();
+        if (this.buildTools === "CMake") {
+            this.createCMakeFiles();
+        } else if (this.buildTools === "QMake") {
+            this.createQMakeFiles();
+        } else {
+            vscode.window.showErrorMessage("未知的构建工具! (Unknown build tool !)");
+        }
 
+
+    }
+
+    private createCMakeFiles() {
+        this.createCMakeLaunchJson();
+        this.createCMakeLists();
+    }
+
+    private createQMakeFiles() {
         this.isMsvc = this.qtSelectedKitDir.search("msvc") !== -1;
-        this.createVSCodeJsonFiles();
+        this.createQMakeJsonFiles();
         if (this.isWin32) {
             this.mkDir(this.projectDir + "/scripts");
-            this.createBatFiles();
+            this.createQMakeBatFiles();
         }
-        this.createSrcAndPro();
-
+        this.createPro();
     }
 
     public openDesigner() {
         let _qtSelectedKitDir = vscode.workspace.getConfiguration().get('qtConfigure.qtKitDir');
         if (!_qtSelectedKitDir) {
-            vscode.window.showErrorMessage("请创建 Qt Ui 项目后再使用此命令 (Please create Qt Ui project before using this command)");
+            vscode.window.showErrorMessage("请创建 Qt 项目后再使用此命令 (Please create Qt project before using this command)");
             return;
         }
         if (this.qtTerminal === undefined) {
             this.qtTerminal = vscode.window.createTerminal("qtTerminal", this.isWin32 ? "cmd" : "bash");
         }
 
-        if (this.projectName.length === 0) { // 寻找 .ui 文件
+        if (this.projectName.length === 0) { // 寻找 projectName
             this.projectDir = vscode.workspace.workspaceFolders![0].uri.fsPath;
-            let projectFileList = fs.readdirSync(this.projectDir);
+            let projectFileList = fs.readdirSync(this.projectDir + "/src");
             for (let projectFile of projectFileList) {
                 if (projectFile.search("\\.ui") !== -1) {
                     this.projectName = projectFile.replace(".ui", "");
@@ -158,7 +183,26 @@ export class QtConfigurator {
             }
         }
 
-        this.qtTerminal.sendText(_qtSelectedKitDir + "/bin/designer" + this.execSuffix + " " + this.projectDir + "/" + this.projectName + ".ui");
+        let uiFileName = this.projectDir + "/src/" + this.projectName + ".ui";
+        if (fs.existsSync(uiFileName)) {
+            this.qtTerminal.sendText(_qtSelectedKitDir + "/bin/designer" + this.execSuffix + " " + uiFileName + this.cmdSuffix);
+        } else {
+            vscode.window.showErrorMessage("请创建 Qt UI 项目后再使用此命令 (Please create Qt UI project before using this command)");
+        }
+
+    }
+
+    public openAssistant() {
+        let _qtSelectedKitDir = vscode.workspace.getConfiguration().get('qtConfigure.qtKitDir');
+        if (!_qtSelectedKitDir) {
+            vscode.window.showErrorMessage("请创建 Qt 项目后再使用此命令 (Please create Qt project before using this command)");
+            return;
+        }
+        if (this.qtTerminal === undefined) {
+            this.qtTerminal = vscode.window.createTerminal("qtTerminal", this.isWin32 ? "cmd" : "bash");
+        }
+
+        this.qtTerminal.sendText(_qtSelectedKitDir + "/bin/assistant" + this.execSuffix + this.cmdSuffix);
     }
 
     public closeTerminal() {
@@ -191,7 +235,7 @@ export class QtConfigurator {
         }
     }
 
-    private createVSCodeJsonFiles() {
+    private createQMakeJsonFiles() {
         // c_cpp_properties
         let content = template_files.C_CPP_JSON;
         content = this.strReplaceAll(content, "__QT_KIT_INCLUDE__", this.qtSelectedKitDir + "/include/**");
@@ -231,7 +275,7 @@ export class QtConfigurator {
 
     }
 
-    private createBatFiles() {
+    private createQMakeBatFiles() {
         let content = this.isMsvc ? template_files.MSVC_BAT : template_files.MINGW_BAT;
         content = this.strReplaceAll(content, "__QT_KIT_DIR__", this.qtSelectedKitDir);
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
@@ -278,7 +322,7 @@ export class QtConfigurator {
     }
 
 
-    private createSrcAndPro() {
+    private createSrc() {
         let content = template_files.MAIN_CPP;
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
         this.writeFile(this.projectDir + "/src/main.cpp", content);
@@ -291,17 +335,32 @@ export class QtConfigurator {
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
         this.writeFile(this.projectDir + "/src/" + this.projectName + ".h", content);
 
-        content = template_files.QT_PRO;
+        if (this.isHasQtUi) {
+            content = template_files.QT_UI;
+            content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
+            this.writeFile(this.projectDir + "/src/" + this.projectName + ".ui", content);
+        }
+    }
+
+    private createPro() {
+        let content = template_files.QT_PRO;
         content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
         if (this.isHasQtUi) {
             content = this.strReplaceAll(content, "# FORMS", "FORMS");
         }
         this.writeFile(this.projectDir + "/" + this.projectName + ".pro", content);
+    }
 
-        if (this.isHasQtUi) {
-            content = template_files.QT_UI;
-            content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
-            this.writeFile(this.projectDir + "/" + this.projectName + ".ui", content);
-        }
+    private createCMakeLists() {
+        let content = template_files.CMAKE_LISTS_TXT;
+        content = this.strReplaceAll(content, "__PROJECT_NAME__", this.projectName);
+        content = this.strReplaceAll(content, "__QT_KIT_DIR__", this.qtSelectedKitDir);
+        this.writeFile(this.projectDir + "/CMakeLists.txt", content);
+    }
+
+    private createCMakeLaunchJson() {
+        let content = template_files.CMAKE_LAUNCH_JSON;
+        content = this.strReplaceAll(content, "__QT_KIT_DIR__", this.qtSelectedKitDir);
+        this.writeFile(this.projectDir + "/.vscode/launch.json", content);
     }
 }

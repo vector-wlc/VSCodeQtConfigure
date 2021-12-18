@@ -21,6 +21,14 @@
 
 * Command: `QtConfigure : Open Qt Designer` 打开 Qt Designer，该命令仅在生成 Qt Ui 项目后才能使用
 
+* Command: `QtConfigure : Open Qt Assistant` 打开 Qt Assistant
+
+### CMake
+
+* 需要配合 VSCode [CMake](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)  扩展使用
+
+### QMake
+
 * Build Debug:
 在编译运行 Debug 时，请将`./.vscode/launch.json` 中的有关内容修改如下:`"program": "${workspaceRoot}/build/debug/${workspaceRootFolderName}.exe"    "preLaunchTask": "debug"`
 
@@ -30,4 +38,6 @@
 ## Requirements
 
 * [Qt](https://www.qt.io/)
-* [ms-vscode.cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) 
+* [ms-vscode.cpptools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+* [CMake](https://cmake.org) 
+* [ms-vscode.cmake-tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools) 

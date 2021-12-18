@@ -2,7 +2,7 @@
     "name": "qtconfigure",
     "displayName": "Qt Configure",
     "description": "Generating configuration files for Qt project in VSCode",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "engines": {
         "vscode": "^1.27.0"
     },
@@ -12,7 +12,8 @@
     "activationEvents": [
         "onCommand:qtConfigure.newQtProject",
         "onCommand:qtConfigure.setQtDir",
-        "onCommand:qtConfigure.openQtDesigner"
+        "onCommand:qtConfigure.openQtDesigner",
+        "onCommand:qtConfigure.openQtAssistant"
     ],
     "publisher": "vector-wlc",
     "keywords": ["qt", "qtconfigure"],
@@ -32,6 +33,9 @@
         }, {
             "command": "qtConfigure.openQtDesigner",
             "title": "QtConfigure : Open Qt Designer"
+        }, {
+            "command": "qtConfigure.openQtAssistant",
+            "title": "QtConfigure : Open Qt Assistant"
         }],
 
         "configuration": {

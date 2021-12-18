@@ -322,7 +322,7 @@ SOURCES += \\\n\
 HEADERS += \\\n\
     $$files($$PWD/src/*.h)\n\
 \n\
-# FORMS += __PROJECT_NAME__.ui\n\
+# FORMS += $$PWD/src/__PROJECT_NAME__.ui\n\
 \n\
 # Default rules for deployment.\n\
 qnx: target.path = /tmp/$${TARGET}/bin\n\
@@ -352,3 +352,50 @@ export const QT_UI = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
  <resources/>\n\
  <connections/>\n\
 </ui>"
+
+
+export const CMAKE_LISTS_TXT = "cmake_minimum_required(VERSION 3.5) # CMake install : https://cmake.org/download/\n\
+project(__PROJECT_NAME__ LANGUAGES CXX)\n\
+set(CMAKE_INCLUDE_CURRENT_DIR ON)\n\
+set(CMAKE_PREFIX_PATH \"__QT_KIT_DIR__\") # Qt Kit Dir\n\
+set(CMAKE_AUTOUIC ON)\n\
+set(CMAKE_AUTOMOC ON)\n\
+set(CMAKE_AUTORCC ON)\n\
+set(CMAKE_CXX_STANDARD 11)\n\
+set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\
+find_package(Qt5 COMPONENTS Widgets REQUIRED) # Qt COMPONENTS\n\
+aux_source_directory(./src srcs)\n\
+\n\
+# Specify MSVC UTF-8 encoding   \n\
+add_compile_options(\"$<$<C_COMPILER_ID:MSVC>:/utf-8>\")\n\
+add_compile_options(\"$<$<CXX_COMPILER_ID:MSVC>:/utf-8>\")\n\
+\n\
+add_executable(${PROJECT_NAME}\n\
+    WIN32 # If you need a terminal for debug, please comment this statement \n\
+    ${srcs} \n\
+) \n\
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets) # Qt5 Shared Library"
+
+
+export const CMAKE_LAUNCH_JSON = "\n\
+{\n\
+    \"version\": \"0.2.0\",\n\
+    \"configurations\": [\n\
+        {\n\
+            \"name\": \"QtBuild\",\n\
+            \"type\": \"cppdbg\",\n\
+            \"request\": \"launch\",\n\
+            \"program\": \"${command:cmake.launchTargetPath}\",\n\
+            \"args\": [],\n\
+            \"stopAtEntry\": false,\n\
+            \"cwd\": \"${workspaceRoot}\",\n\
+            \"environment\": [\n\
+                {\n\
+                    \"name\": \"PATH\",\n\
+                    \"value\": \"__QT_KIT_DIR__/bin\"\n\
+                }\n\
+            ],\n\
+            \"externalConsole\": false,\n\
+        }\n\
+    ]\n\
+}"

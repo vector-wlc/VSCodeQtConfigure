@@ -83,9 +83,21 @@ function selectQtKit() {
 	const options: vscode.QuickPickOptions = {
 		title: "请选择 Qt 套件 (Please select Qt Kit)"
 	};
-	vscode.window.showQuickPick(qtConfigurator.getQtKitDirList(), options).then(qt_kit_name => {
-		if (qt_kit_name && qt_kit_name.length != 0) {
-			qtConfigurator.setQtKitDir(qt_kit_name.toString());
+	vscode.window.showQuickPick(qtConfigurator.getQtKitDirList(), options).then(qtKitName => {
+		if (qtKitName && qtKitName.length != 0) {
+			qtConfigurator.setQtKitDir(qtKitName.toString());
+			selectBuildTools();
+		}
+	});
+}
+
+function selectBuildTools() {
+	const options: vscode.QuickPickOptions = {
+		title: "请选择构建工具 (Please select a build tool )"
+	};
+	vscode.window.showQuickPick(["CMake", "QMake"], options).then(buildTools => {
+		if (buildTools && buildTools.length != 0) {
+			qtConfigurator.setBuildTools(buildTools.toString());
 			selectQtUi();
 		}
 	});
@@ -132,6 +144,10 @@ export function activate(context: vscode.ExtensionContext) {
 		qtConfigurator.openDesigner();
 	});
 
+	let openQtAssistant = vscode.commands.registerCommand('qtConfigure.openQtAssistant', () => {
+		qtConfigurator.openAssistant();
+	});
+
 	let closeTerminal = vscode.window.onDidCloseTerminal(t => {
 		if (t.name == "qtTerminal") {
 			qtConfigurator.closeTerminal();
@@ -142,6 +158,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(setQtDir);
 	context.subscriptions.push(closeTerminal);
 	context.subscriptions.push(openQtDesigner);
+	context.subscriptions.push(openQtAssistant);
 }
 
 
